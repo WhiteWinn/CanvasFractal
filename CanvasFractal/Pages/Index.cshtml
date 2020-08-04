@@ -1,0 +1,254 @@
+﻿@page
+@model IndexModel
+
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<!-- the framework THREE and Orbit Controls are produced by an external group and this is a reference to declaring the use of such-->
+<!--none of the content inside of the Three.js or orbit controls.js are mine or produced by me and are a framework being used -->
+<!-- Bootstrap and Jquery are also included in this project, jquery is unused, but bootstrap is used, I have built my webfacing components using bootstrap-->
+<!-- Razor pages is part of ASP.NET and I did not build this framework,it is a huge framework open sourced by microsoft but the pages used are built by me -->
+
+<div id="jumbotron" class="container-fluid bg-dark text-white">
+    <div class="container">
+        <h1 class="display-4">Welcome</h1>
+        <p>This webapplication is dedicated the showing of fractals</p>
+        <p>Inside the canvas click and drag to rotate the rendered image</p>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<div class="container-fluid" id="Canvas_Container">
+    <div class="row">
+        <div class="col-md-8">
+
+            <div class="row" id="effective_Canvas_Width">
+                <canvas id="fractal_canvas" width="800" height="800" style=" border:2px solid #160c6c"></canvas>
+                <div class="">
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-4 container bg-dark text-white">
+            <p>     </p>
+            <ul class="nav nav-pills justify-content-center flex-column nav-fill">
+                <li class=" btn btn-block btn-light" id="render_button">Render</li>
+                <li class=" btn btn-block btn-light" id="reset_button">Reset Canvas</li>
+                <li class=" btn btn-block btn-light"><a href="#">Menu 2</a></li>
+                <li class=" btn btn-block btn-light"><a href="#">Menu 3</a></li>
+
+            </ul>
+
+
+            <!--a set of options for picking which three js will be rendered, and changes what meshes three js variables will be loaded in-->
+            <div>
+                <hr size="10" colour="ffffff" style="width:100%">
+                <p> Fractal Selected:</p>
+                <select class="form-control" id="option_fractal">
+                    <option value="1">Diamond Square Terrain</option>
+                    <option value="2">L-System</option>
+                    <option value="3">Sierpinski Triangle</option>
+                </select>
+
+            </div>
+
+
+
+            <div id="SegmentUIselector">
+                <hr size="10" colour="ffffff" style="width:100%">
+                <p> Segments Selected:</p>
+                <select class="form-control" id="option_segments_to_be_used">
+                    <!--   three values to be chosen from, these in my opinion proved enough segments on the plane to show the fractal nature of the terrain-->
+                    <option value="33">33</option>
+                    <option value="65">65</option>
+                    <option value="129">129</option>
+                </select>
+                <p>we use these due to requiring a 2^n + 1 with these options showing terrain in a reasonable way without being too cumbersome to load</p>
+            </div>
+
+
+
+        </div>
+
+
+    </div>
+</div>
+
+
+
+
+
+<!--  <script src="https://threejs.org/build/three.js"></script> -->
+<script src="~/js/three.js"></script>
+<script src="~/js/site.js"></script>
+<script src="~/js/DiamondSquare.js"></script>
+<script src="~/js/OrbitControls.js"></script>
+<!-- the framework THREE and Orbit Controls are produced by an external group and this is a reference to declaring the use of such-->
+<!--none of the content inside of the Three.js or orbit controls.js are mine or produced by me and are a framework being used -->
+<!-- Bootstrap and Jquery are also included in this project, jquery is unused, but bootstrap is used, I have build my webfacing components using bootstrap-->
+<script type="module">
+    var planeDiamondSquare;
+    var fractalToLoad;
+
+
+
+
+    // const canvas = document.querySelector('#fractal_canvas');
+    // connecting the render button in the html to the function to animate
+    document.getElementById("render_button").addEventListener("click", setAnimateParameters);
+    //  document.getElementById("option_fractal").addEventListener("click", fractalChoice);
+    // document.getElementById("reset_button").addEventListener("click", stopAnimate);
+
+
+    var fov = 75;
+    var aspect = 2;
+    var near = 1;
+    var far = 5000;
+
+    const canvasToAttach = document.querySelector('#fractal_canvas')
+    var renderer = new THREE.WebGLRenderer({ canvas: canvasToAttach });
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color("#808080");
+    var camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+    //var renderer = new THREE.WebGL1Renderer({ canvas });
+
+    //   var planeDiamondSquare = Return_Plane();
+
+    //planeDiamondSquare = Return_Plane();
+    //   scene.add(planeDiamondSquare[2]);
+
+    var geometry = new THREE.BoxGeometry();
+    var material = new THREE.MeshPhongMaterial({ color: 0x44aa88 });
+    var cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+
+
+
+
+
+    {
+        const color = 0xFFFFFF;
+        const intensity = 1;
+        const light = new THREE.DirectionalLight(color, intensity);
+        // var light = new THREE.AmbientLight(0x404040);
+        light.position.set(0, 0, 500);
+        scene.add(light);
+    }
+
+
+    camera.position.z = 500
+    var renderedDiamondSquare = false;
+    // this begins the aniomation and rendering of the selected fractal
+
+
+    function setAnimateParameters() {
+        while (scene.children.length > 0) {
+            scene.remove(scene.children[0]);
+        }
+        fractalToLoad = document.getElementById("option_fractal");
+        let fractalindex;
+        fractalindex = fractalToLoad.options[fractalToLoad.selectedIndex].value;
+
+        if ((fractalindex === "1")) {
+
+            renderedDiamondSquare = true;
+            planeDiamondSquare = Return_Plane();
+            scene.add(planeDiamondSquare[2]);
+        }
+        if ((fractalindex === "2")) {
+
+            scene.add(cube);
+        }
+
+        animate();
+    }
+
+
+    var animateId;
+    function animate() {
+        //  fractalChoice();
+
+
+
+        // this creates the animation frames and creates a loop to draw the screen when the screen is refreshed
+        animateId = requestAnimationFrame(animate);
+        render();
+
+        //planeDiamondSquare[2].rotation.x += 0.01;
+        //  planeDiamondSquare[2].rotation.y += 0.01;
+
+
+    }
+
+
+
+    function render() {
+
+
+        renderer.render(scene, camera)
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //unused
+    function tempmain() {
+        var element = document.getElementById('jumbotron');
+        element.style.color = blue;
+
+    }
+
+
+    // unused
+    function paintIt() {
+        color = prompt("Enter the color you want on the Background???");
+        var body = document.getElementsByTagName('body')[0];
+        body.style.backgroundColor = color;
+    }
+
+    //this is supplied by the javascript file orbit controls for ease of use, this is being deprecated by
+    //es6 and will not be able to be used in december, but we can switch to making rail controls using keystrokes if needed
+    var controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
